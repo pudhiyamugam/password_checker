@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTD-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>shieldcheck | password strength</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-slate-900 text-white min-h-screen flex items-center justify-center">
+
+        <div class="bg-slate-800 p-8 rounded-xl shadow-2xl w-full max-w-md border border-slate-700">
+            <h1 class="text-2xl font-bold mb-6 text-blue-400">shieldcheck <v1 class="0"></v1></h1>
+
+            <label class="block text-sm font-medium mb-2">enter the password</label>
+            <input type="password" id="passwordInput"
+                class="w-full p-3 rounded bg-slate-700 border border-slate-600 focus:border-blue-500 focus:outline-none transition-all"
+                placeholder="check your security..">
+            <div class="mt-6">
+                <div class="flex justify-between mb-1">
+                    <span class="text-xs font-semibold" id="strengthText">strength:None</span>
+                    <span class="text-xs font-semibold" id="crackTime">Time to crack: 0s</span>
+                </div>
+                <div class="w-full bg-slate-700 rounded-full h-2">
+                <div id="strengthBar" class="bg-red-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+
+            <div id="feedbackArea" class="mt-4 text-sm text-slate-400 italic"></div>
+        </div>
+
+        <script>
+            const input=document.getElementById('passwordInput');
+            const bar=document.getElementById('strengthBar');
+            const text=document.getElementById('strengthText');
+            const crackTime=document.getElementById('crackTime');
+            const feedback=document.getElementById('feedbackArea');
+
+            input.addEventListener('input',async(e)=>{
+                const password=e.target.value;
+                if(!password){
+                    resetUI();
+                    return;
+                }
+
+                const response=await fetch('/check',{
+                    method: 'POST',
+                    headers:{'Content-Type': 'application/json'},
+                    body: JSON.stringify({password})
+                });
+
+                const data=await response.json();
+                updateUI(data);
+            });
+
+                function updateUI(data){
+                    const colors=['bg-red-600', 'bg-orange-500', 'bg-yellow-400', 'bg-blue-500', 'bg-green-500'];
+                    const labels = ['Very Weak', 'Weak', 'Fair', 'Strong', 'Very Strong'];
+
+                    const score=data.score;
+                    bar.style.width=((score+1)*20)+'%';
+                    bar.className=`h-2 rounded-full transition-all duration-500 ${colors[score]}`;
+                    text.innerText=`Strength: ${labels[score]}`;
+                    crackTime.innerText=`Crack Time: ${data.crack_time}`;
+                    feedback.innerText=data.feedback || (data.suggestions[0] || "");
+                }
+
+                function resetUI(){
+                    bar.style.width='0%';
+                    text.innerText='Strength: None';
+                    crackTime.innerText='Time to crack:0s';
+                    feedback.innerText='';
+                }
+
+        </script>
+    </body> 
+</html>
