@@ -4,6 +4,7 @@
         <meta charset="UTD-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>shieldcheck | password strength</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
         <script src="https://cdn.tailwindcss.com"></script>
     </head>
     <body class="bg-slate-900 text-white min-h-screen flex items-center justify-center">
@@ -15,6 +16,9 @@
             <input type="password" id="passwordInput"
                 class="w-full p-3 rounded bg-slate-700 border border-slate-600 focus:border-blue-500 focus:outline-none transition-all"
                 placeholder="check your security..">
+                <button type="button" id="togglePassword" class="absolute right-3 top-3.5 text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-eye" id="eyeIcon"></i>
+                </button>
             <div class="mt-6">
                 <div class="flex justify-between mb-1">
                     <span class="text-xs font-semibold" id="strengthText">strength:None</span>
@@ -33,6 +37,8 @@
             const text=document.getElementById('strengthText');
             const crackTime=document.getElementById('crackTime');
             const feedback=document.getElementById('feedbackArea');
+            const togglePassword = document.getElementById('togglePassword');
+            const eyeIcon = document.getElementById('eyeIcon');
 
             input.addEventListener('input',async(e)=>{
                 const password=e.target.value;
@@ -49,6 +55,16 @@
 
                 const data=await response.json();
                 updateUI(data);
+            });
+
+            togglePassword.addEventListener('click', () => {
+             // Toggle the type attribute
+                const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                input.setAttribute('type', type);
+    
+                // Toggle the icon class
+                eyeIcon.classList.toggle('fa-eye');
+                eyeIcon.classList.toggle('fa-eye-slash');
             });
 
                 function updateUI(data){
