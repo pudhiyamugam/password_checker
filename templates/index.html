@@ -1,91 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTD-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>shieldcheck | password strength</title>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-        <script src="https://cdn.tailwindcss.com"></script>
-    </head>
-    <body class="bg-slate-900 text-white min-h-screen flex items-center justify-center">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShieldCheck | Password Strength</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center p-4">
 
-        <div class="bg-slate-800 p-8 rounded-xl shadow-2xl w-full max-w-md border border-slate-700">
-            <h1 class="text-2xl font-bold mb-6 text-blue-400">shieldcheck <v1 class="0"></v1></h1>
+    <div class="bg-slate-800 p-8 rounded-xl shadow-2xl w-full max-w-md border border-slate-700">
+        <h1 class="text-2xl font-bold mb-6 text-blue-400">ShieldCheck <span class="text-xs text-slate-500 font-mono">v1.0</span></h1>
 
-            <label class="block text-sm font-medium mb-2">enter the password</label>
+        <label class="block text-sm font-medium mb-2">Enter the password</label>
+        
+        <div class="relative">
             <input type="password" id="passwordInput"
-                class="w-full p-3 rounded bg-slate-700 border border-slate-600 focus:border-blue-500 focus:outline-none transition-all"
-                placeholder="check your security..">
-                <button type="button" id="togglePassword" class="absolute right-3 top-3.5 text-slate-400 hover:text-white">
-                    <i class="fa-solid fa-eye" id="eyeIcon"></i>
-                </button>
-            <div class="mt-6">
-                <div class="flex justify-between mb-1">
-                    <span class="text-xs font-semibold" id="strengthText">strength:None</span>
-                    <span class="text-xs font-semibold" id="crackTime">Time to crack: 0s</span>
-                </div>
-                <div class="w-full bg-slate-700 rounded-full h-2">
-                <div id="strengthBar" class="bg-red-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
-            </div>
-
-            <div id="feedbackArea" class="mt-4 text-sm text-slate-400 italic"></div>
+                class="w-full p-3 pr-10 rounded bg-slate-700 border border-slate-600 focus:border-blue-500 focus:outline-none transition-all"
+                placeholder="Check your security..">
+            
+            <button type="button" id="togglePassword" class="absolute right-3 top-3 text-slate-400 hover:text-white focus:outline-none">
+                <i class="fa-solid fa-eye" id="eyeIcon"></i>
+            </button>
         </div>
 
-        <script>
-            const input=document.getElementById('passwordInput');
-            const bar=document.getElementById('strengthBar');
-            const text=document.getElementById('strengthText');
-            const crackTime=document.getElementById('crackTime');
-            const feedback=document.getElementById('feedbackArea');
-            const togglePassword = document.getElementById('togglePassword');
-            const eyeIcon = document.getElementById('eyeIcon');
+        <div class="mt-6">
+            <div class="flex justify-between mb-1">
+                <span class="text-xs font-semibold" id="strengthText">Strength: None</span>
+                <span class="text-xs font-semibold" id="crackTime">Time to crack: 0s</span>
+            </div>
+            <div class="w-full bg-slate-700 rounded-full h-2">
+                <div id="strengthBar" class="bg-red-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <div id="feedbackArea" class="mt-4 text-sm text-slate-400 italic min-h-[1.25rem]"></div>
+        </div>
+    </div>
 
-            input.addEventListener('input',async(e)=>{
-                const password=e.target.value;
-                if(!password){
-                    resetUI();
-                    return;
-                }
+    <script>
+        const input = document.getElementById('passwordInput');
+        const bar = document.getElementById('strengthBar');
+        const text = document.getElementById('strengthText');
+        const crackTime = document.getElementById('crackTime');
+        const feedback = document.getElementById('feedbackArea');
+        const togglePassword = document.getElementById('togglePassword');
+        const eyeIcon = document.getElementById('eyeIcon');
 
-                const response=await fetch('/check',{
+        input.addEventListener('input', async (e) => {
+            const password = e.target.value;
+            if (!password) {
+                resetUI();
+                return;
+            }
+
+            try {
+                const response = await fetch('/check', {
                     method: 'POST',
-                    headers:{'Content-Type': 'application/json'},
-                    body: JSON.stringify({password})
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
                 });
 
-                const data=await response.json();
-                updateUI(data);
-            });
-
-            togglePassword.addEventListener('click', () => {
-             // Toggle the type attribute
-                const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-                input.setAttribute('type', type);
-    
-                // Toggle the icon class
-                eyeIcon.classList.toggle('fa-eye');
-                eyeIcon.classList.toggle('fa-eye-slash');
-            });
-
-                function updateUI(data){
-                    const colors=['bg-red-600', 'bg-orange-500', 'bg-yellow-400', 'bg-blue-500', 'bg-green-500'];
-                    const labels = ['Very Weak', 'Weak', 'Fair', 'Strong', 'Very Strong'];
-
-                    const score=data.score;
-                    bar.style.width=((score+1)*20)+'%';
-                    bar.className=`h-2 rounded-full transition-all duration-500 ${colors[score]}`;
-                    text.innerText=`Strength: ${labels[score]}`;
-                    crackTime.innerText=`Crack Time: ${data.crack_time}`;
-                    feedback.innerText=data.feedback || (data.suggestions[0] || "");
+                if (response.ok) {
+                    const data = await response.json();
+                    updateUI(data);
                 }
+            } catch (error) {
+                console.error("Fetch error:", error);
+            }
+        });
 
-                function resetUI(){
-                    bar.style.width='0%';
-                    text.innerText='Strength: None';
-                    crackTime.innerText='Time to crack:0s';
-                    feedback.innerText='';
-                }
+        togglePassword.addEventListener('click', () => {
+            // Toggle the type attribute
+            const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+            input.setAttribute('type', type);
 
-        </script>
-    </body> 
+            // Toggle the icon class
+            eyeIcon.classList.toggle('fa-eye');
+            eyeIcon.classList.toggle('fa-eye-slash');
+        });
+
+        function updateUI(data) {
+            const colors = ['bg-red-600', 'bg-orange-500', 'bg-yellow-400', 'bg-blue-500', 'bg-green-500'];
+            const labels = ['Very Weak', 'Weak', 'Fair', 'Strong', 'Very Strong'];
+
+            const score = data.score;
+            bar.style.width = ((score + 1) * 20) + '%';
+            bar.className = `h-2 rounded-full transition-all duration-500 ${colors[score]}`;
+            text.innerText = `Strength: ${labels[score]}`;
+            crackTime.innerText = `Crack Time: ${data.crack_time}`;
+            feedback.innerText = data.feedback || (data.suggestions[0] || "Safe password!");
+        }
+
+        function resetUI() {
+            bar.style.width = '0%';
+            text.innerText = 'Strength: None';
+            crackTime.innerText = 'Time to crack: 0s';
+            feedback.innerText = '';
+        }
+    </script>
+</body>
 </html>
